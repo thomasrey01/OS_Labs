@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "scanner.h"
+bool isOperator(char *s);
 
 /**
  * The function acceptToken checks whether the current token matches a target identifier,
@@ -18,6 +19,14 @@ bool acceptToken(List *lp, char *ident) {
     return false;
 }
 
+bool isAlph(char s) {
+    return ((s >= 'A' && s <= 'Z') || (s >= 'a' && s <= 'z'));
+}
+
+bool isSpecialChar(char s) {
+    return (s == '?' || s == '+' || s == '!' || s == '$' || s == '[');    
+}
+
 /**
  * The function parseExecutable parses an executable.
  * @param lp List pointer to the start of the tokenlist.
@@ -25,6 +34,8 @@ bool acceptToken(List *lp, char *ident) {
  */
 bool parseExecutable(List *lp) {
 
+    char *s = (*lp)->t;
+    bool canEnd = false;
     // TODO: Determine whether to accept parsing an executable here.
     // 
     // It is not recommended to check for existence of the executable already
@@ -35,8 +46,17 @@ bool parseExecutable(List *lp) {
     // Instead, we recommend to just do a syntactical check here, which makes
     // more sense, and defer the binary existence check to the runtime part
     // you'll write later.
-
-    return true;
+    char c;
+    for (int i = 0; (c = s[i]) != '\0'; i++) {
+        if (isSpecialChar(c)) return false;
+        if (c == '/') {
+            if (!canEnd) return false;
+            canEnd = false;
+        } else {
+            canEnd = true;
+        }
+    }
+    return canEnd;
 }
 
 /**
@@ -118,6 +138,12 @@ bool parsePipeline(List *lp) {
 bool parseFileName(List *lp) {
     //TODO: Process the file name appropriately
     char *fileName = (*lp)->t;
+    char c;
+    for (int i = 0; (c = fileName[i]) != '\0'; i++) {
+        if (isSpecialChar(c)) {
+            return false;
+        } 
+    }
     return true;
 }
 
