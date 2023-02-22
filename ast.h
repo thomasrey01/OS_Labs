@@ -15,6 +15,7 @@ enum commOp {
     TREE_OR,
     TREE_BACK,
     SEMI,
+    NONE,
 };
 
 struct inputline {

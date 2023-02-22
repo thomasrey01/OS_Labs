@@ -217,7 +217,7 @@ bool parseBuiltIn(List *lp) {
  * @param lp List pointer to the start of the tokenlist.
  * @return a bool denoting whether the chain was parsed successfully.
  */
-bool parseChain(List *lp) {
+bool parseChain(List *lp, struct ast *tree) {
     if (parseBuiltIn(lp)) {
         return parseOptions(lp);
     }

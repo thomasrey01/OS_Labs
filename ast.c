@@ -5,6 +5,22 @@
 
 #include "ast.h"
 
+void freeSyntaxTree(struct ast *tree)
+{
+    if (tree == NULL) {
+        return;
+    }
+    if (tree->t == INPUTLINE) {
+        freeSyntaxTree(tree->i->left);
+        freeSyntaxTree(tree->i->right);
+        free(tree->i);
+    } else {
+        free(tree->c);
+    }
+
+    free(tree);
+}
+
 struct ast *createNode(enum type t)
 {
     struct ast *a = (struct ast*)malloc(sizeof(struct ast));
@@ -12,6 +28,8 @@ struct ast *createNode(enum type t)
     switch(t) {
         case INPUTLINE:
             a->i = (struct inputline*)malloc(sizeof(struct inputline));
+            a->i->left = NULL;
+            a->i->right = NULL;
             break;
         case CHAIN:
             a->c = (struct chain*)malloc(sizeof(struct chain));
