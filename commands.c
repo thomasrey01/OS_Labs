@@ -1,5 +1,7 @@
 #include "commands.h"
 
+int status;
+
 int executeCommand(List tokenList)
 {
     char *s = tokenList->t;
@@ -8,6 +10,10 @@ int executeCommand(List tokenList)
     }
     if (strcmp(s, "status") == 0) {
         // IDK what this is supposed to do yet
+        if (globalToken != NULL) {
+            printf("%s\n", globalToken->t);
+        }
     }
+    // status = execv() 
     return 1;
 }
