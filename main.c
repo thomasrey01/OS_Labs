@@ -4,6 +4,7 @@
 
 #include "scanner.h"
 #include "shell.h"
+#include "ast.h"
 #include "commands.h"
 
 int main(int argc, char *argv[]) {
@@ -16,8 +17,8 @@ int main(int argc, char *argv[]) {
         tokenList = getTokenList(inputLine);
         // printList(tokenList);
         List tokenListCopy = tokenList;
-
-        bool parsedSuccessfully = parseInputLine(&tokenListCopy);
+        struct ast *tree = NULL;
+        bool parsedSuccessfully = parseInputLine(&tokenListCopy, tree);
         int command;
         if (tokenListCopy == NULL && parsedSuccessfully) {
             // Input was parsed successfully and can be accessed in "tokenList"
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
             // to build some intermediate structure representing the input line or a
             // command that you then construct in the parsing logic. It's up to you
             // to determine how to approach this!
-            command = executeCommand(tokenList);
+            command = executeCommand(tree);
             if (command == 0) {
                 break;
             }

@@ -1,7 +1,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "arr.h"
+#include "ast.h"
 #include "scanner.h"
+
 bool isOperator(char *s);
 
 /**
@@ -56,6 +59,9 @@ bool parseExecutable(List *lp) {
             canEnd = true;
         }
     }
+    if (canEnd) {
+        addToArray(s);
+    }
     return canEnd;
 }
 
@@ -92,6 +98,7 @@ bool isOperator(char *s) {
 bool parseOptions(List *lp) {
     //TODO: store each (*lp)->t as an option, if any exist
     while (*lp != NULL && !isOperator((*lp)->t)) {
+        // addToArray((*lp)->t);
         (*lp) = (*lp)->next;
     }
     return true;
@@ -233,22 +240,24 @@ bool parseChain(List *lp) {
  * @param lp List pointer to the start of the tokenlist.
  * @return a bool denoting whether the inputline was parsed successfully.
  */
-bool parseInputLine(List *lp) {
+bool parseInputLine(List *lp, struct ast *tree) {
     if (isEmpty(*lp)) {
         return true;
     }
-
+    tree = createNode(INPUTLINE);
     if (!parseChain(lp)) {
         return false;
     }
-
+    tree->i->left = createNode(CHAIN);
+    char *s = (*lp)->t;
+    tree->i->left->c->command = s;
     if (acceptToken(lp, "&") || acceptToken(lp, "&&")) {
-        return parseInputLine(lp);
+        return parseInputLine(lp, tree->i->right);
     } else if (acceptToken(lp, "||")) {
-        return parseInputLine(lp);
+        return parseInputLine(lp, tree->i->right);
     } else if (acceptToken(lp, ";")) {
-        return parseInputLine(lp);
+        return parseInputLine(lp, tree->i->right);
     }
-
+    
     return true;
 }

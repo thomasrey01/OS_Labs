@@ -7,7 +7,6 @@ typedef struct ListNode *List;
 
 typedef struct ListNode {
     char *t;
-    int type; 
     List next;
 } ListNode;
 

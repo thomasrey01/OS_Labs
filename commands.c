@@ -1,6 +1,10 @@
 #include "commands.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int status;
+extern char **command;
 
 int executeCommand(List tokenList)
 {
@@ -10,10 +14,23 @@ int executeCommand(List tokenList)
     }
     if (strcmp(s, "status") == 0) {
         // IDK what this is supposed to do yet
-        if (globalToken != NULL) {
-            printf("%s\n", globalToken->t);
-        }
+        // if (globalToken != NULL) {
+        //     printf("%s\n", globalToken->t);
+        // }
     }
     // status = execv() 
-    return 1;
+    pid_t pid;
+    pid = fork();
+    if (pid < 0) {
+        printf("Error in creating child process;\n");
+        exit(0);
+    }
+    if (pid == 0) {
+        status = execv(command[0], command);
+        exit(0);
+    } else {
+        wait(NULL);
+        return 1;
+    }
+    return 0;
 }
