@@ -2,16 +2,19 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "commands.h"
+
+extern int last_operation;
 
 void exec_command(char **commands) {
     if (strcmp(commands[0], "exit") == 0) {
         exit(0);
     }
-    if (strcmp(commands[0], "status") == 0) {
-        //TO DO: implement the status
-    }
+    //  if (strcmp(commands[0], "status") == 0) {
+    //     printf("%d\n", last_operation);
+    //  }
     
     pid_t child_pid = fork();
 
@@ -24,7 +27,7 @@ void exec_command(char **commands) {
             waitpid(child_pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     } else {
-        perror("Error in creating child process;\n");
+        printf("Error in creating child process;\n");
     }
 
 }

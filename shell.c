@@ -3,8 +3,8 @@
 
 #include "scanner.h"
 
-char *last_operation;
-char *commands[999999];
+char *commands[1000];
+int last_operation;
 
 /**
  * The function acceptToken checks whether the current token matches a target identifier,
@@ -15,11 +15,9 @@ char *commands[999999];
  */
 bool acceptToken(List *lp, char *ident) {
     if (*lp != NULL && strcmp(((*lp)->t), ident) == 0) {
-        last_operation = (*lp)->t;
         *lp = (*lp)->next;
         return true;
     }
-    last_operation = NULL;
     return false;
 }
 
@@ -41,7 +39,7 @@ bool parseExecutable(List *lp) {
     // more sense, and defer the binary existence check to the runtime part
     // you'll write later.
     commands[0] = (*lp)->t;
-    (*lp)=(*lp)->next;
+    (*lp) = (*lp)->next;
     return true;
 }
 
@@ -77,13 +75,13 @@ bool isOperator(char *s) {
  */
 bool parseOptions(List *lp) {
     //TODO: store each (*lp)->t as an option, if any exist
-    int i = 1;
+    int counter = 1;
     while (*lp != NULL && !isOperator((*lp)->t)) {
-        commands[i] = (*lp)->t;
+        commands[counter] = (*lp)->t;
         (*lp) = (*lp)->next;
-        i++;
+        counter++;
     }
-    commands[i] = NULL;
+    commands[counter] = NULL;
     return true;
 }
 
