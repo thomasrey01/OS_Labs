@@ -25,7 +25,9 @@ struct inputline {
 };
 
 struct chain {
-    char *command; // piping is not yet needed for this lab    
+    char **command; // piping is not yet needed for this lab
+    int size;
+    int ptr;
 };
 
 struct ast {

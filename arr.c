@@ -6,18 +6,7 @@ char **command = NULL;
 int size = 5;
 int ptr = 0;
 
-void addToArray(char *s)
-{
-    if (command == NULL) {
-        command = (char **)malloc(size * sizeof(char *));
-    }
-    if (ptr + 1 == size) {
-        size *= 2;
-        command = realloc(command, size * sizeof(char *));
-    }
-    strcpy(command[ptr], s);
-    ptr++;
-}
+
 
 void addNull()
 {

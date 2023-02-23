@@ -17,8 +17,33 @@ void freeSyntaxTree(struct ast *tree)
     } else {
         free(tree->c);
     }
-
     free(tree);
+}
+
+void addNull(struct chain *tree)
+{
+    if (tree->command == NULL) {
+        tree->command = (char **)malloc(tree->size * sizeof(char *));
+    }
+    if (tree->ptr + 1 == tree->size) {
+        tree->size *= 2;
+        tree->command = realloc(tree->command, tree->size * sizeof(char *));
+    }
+    tree->command[tree->ptr] = NULL;
+    tree->ptr++;
+}
+
+void addCommand(char *s, struct chain *tree)
+{
+    if (tree->command == NULL) {
+        tree->command = (char **)malloc(tree->size * sizeof(char *));
+    }
+    if (tree->ptr + 1 == tree->size) {
+        tree->size *= 2;
+        tree->command = realloc(tree->command, tree->size * sizeof(char *));
+    }
+    strcpy(tree->command[tree->ptr], s);
+    tree->ptr++;
 }
 
 struct ast *createNode(enum type t)
@@ -33,6 +58,9 @@ struct ast *createNode(enum type t)
             break;
         case CHAIN:
             a->c = (struct chain*)malloc(sizeof(struct chain));
+            a->c->size = 10;
+            a->c->ptr = 0;
+            a->c->command = (char **)malloc(a->c->size * sizeof(char**));
             break;
         default:
             break;
