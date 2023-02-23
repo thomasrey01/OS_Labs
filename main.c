@@ -3,9 +3,9 @@
 #include <stdbool.h>
 
 #include "scanner.h"
-#include "shell.h"
 #include "ast.h"
 #include "commands.h"
+#include "parser.h"
 
 int main(int argc, char *argv[]) {
     char *inputLine;
@@ -17,12 +17,13 @@ int main(int argc, char *argv[]) {
         tokenList = getTokenList(inputLine);
         // printList(tokenList);
         List tokenListCopy = tokenList;
-        struct ast *tree = NULL;
-        bool parsedSuccessfully = parseInputLine(&tokenListCopy, tree);
+        int status;
+        struct ast *tree = parseInputLine(&tokenList, status);
         int command;
-        if (tokenListCopy == NULL && parsedSuccessfully) {
+        if (tokenListCopy == NULL && status != 0) {
             // Input was parsed successfully and can be accessed in "tokenList"
 
+            printSyntaxTree(tree);
             // However, this is still a simple list of strings, it might be convenient
             // to build some intermediate structure representing the input line or a
             // command that you then construct in the parsing logic. It's up to you

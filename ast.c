@@ -5,6 +5,26 @@
 
 #include "ast.h"
 
+void printSyntaxTree(struct ast *tree)
+{
+    if (tree == NULL) {
+        return;
+    }
+    switch (tree->t) {
+        case INPUTLINE:
+            printf("inputline: ");
+            break;
+        case PIPELINE:
+            printf("pipeline: ");
+            break;
+        case CHAIN:
+            printf("chain: ");
+            break;
+        default:
+            break;
+    }
+}
+
 void freeSyntaxTree(struct ast *tree)
 {
     if (tree == NULL) {

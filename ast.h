@@ -5,7 +5,6 @@ struct ast;
 
 enum type {
     INPUTLINE,
-    COMMAND,
     PIPELINE,
     CHAIN,
 };
@@ -18,6 +17,12 @@ enum commOp {
     NONE,
 };
 
+enum chainType {
+    STATUS,
+    EXIT,
+    COMMAND,
+};
+
 struct inputline {
     enum commOp op;
     struct ast *left;
@@ -25,6 +30,7 @@ struct inputline {
 };
 
 struct chain {
+    enum chainType t;
     char **command; // piping is not yet needed for this lab
     int size;
     int ptr;
@@ -39,5 +45,8 @@ struct ast {
 };
 
 struct ast *createNode(enum type t);
+void addCommand(char *s, struct chain *tree);
+void addNull(struct chain *tree);
+void freeSyntaxTree(struct ast *tree);
 
 #endif

@@ -1,12 +1,13 @@
-#include "commands.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "commands.h"
+
 int status;
 extern char **command;
 
-int executeCommand(List tokenList)
+int executeCommand(struct ast *tree)
 {
     char *s = tokenList->t;
     if (strcmp(s, "exit") == 0) {
