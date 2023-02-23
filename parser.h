@@ -4,6 +4,6 @@
 #include "ast.h"
 #include "scanner.h"
 
-struct ast *parseInputLine(List *lp, int status);
+struct ast *parseInputLine(List *lp, int *status);
 
 #endif

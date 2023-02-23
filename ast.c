@@ -66,9 +66,6 @@ void addNull(struct chain *tree)
 
 void addCommand(char *s, struct chain *tree)
 {
-    if (s == NULL) {
-        return;
-    }
     if (tree->command == NULL) {
         tree->command = (char **)malloc(tree->size * sizeof(char *));
         for (int i = 0; i < tree->size; i++) {
@@ -82,7 +79,12 @@ void addCommand(char *s, struct chain *tree)
             tree->command[i] = NULL;
         }
     }
-    tree->command[tree->ptr] = malloc(strlen(s) * sizeof(char));
+    if (s == NULL) {
+        tree->command[tree->ptr] = NULL;
+        tree->ptr++;
+        return;
+    }
+    tree->command[tree->ptr] = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(tree->command[tree->ptr], s);
     tree->ptr++;
 }

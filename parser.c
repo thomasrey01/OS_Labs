@@ -6,6 +6,9 @@
 
 enum commOp parseOp(List *lp)
 {
+    if (*lp == NULL) {
+        return NONE;
+    }
     char *s = (*lp)->t;
     if (strcmp(s, "&") == 0) {
         *lp = (*lp)->next;
@@ -107,7 +110,7 @@ bool isOperator(char *s) {
 
 bool parseOptions(List *lp)
 {
-    if (lp == NULL) {
+    if (*lp == NULL || isOperator((*lp)->t)) {
         return false;
     }
     return true;
@@ -146,23 +149,20 @@ struct ast *parseChain(List *lp, int *status)
             addCommand((*lp)->t, tree->c);
             *lp = (*lp)->next;
         }
-        *lp = (*lp)->next;
         addNull(tree->c);
         return tree;
     }
-    *status = 0;
     return NULL;
 }
 
 struct ast *parseInputLine(List *lp, int *status)
 {
-    struct ast *tree = createNode(INPUTLINE);
     int stat;
     if (isEmpty(*lp)) {
         *status = 1;
-        freeSyntaxTree(tree);
         return NULL;
     }
+    struct ast *tree = createNode(INPUTLINE);
     tree->i->left = parseChain(lp, &stat);
     if (stat == 0) {
         *status = 0;
@@ -171,9 +171,12 @@ struct ast *parseInputLine(List *lp, int *status)
     }
     enum commOp oper = parseOp(lp);
     if (oper != NONE) {
+        tree->i->op = oper;
         tree->i->right = parseInputLine(lp, &stat);  
     } else {
+        tree->i->op = oper;
         tree->i->right = NULL;
     }
+    *status = 1;
     return tree;
 }

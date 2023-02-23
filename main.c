@@ -18,12 +18,13 @@ int main(int argc, char *argv[]) {
         printList(tokenList);
         // List tokenListCopy = tokenList;
         int status;
-        struct ast *tree = parseInputLine(&tokenList, status);
+        struct ast *tree = parseInputLine(&tokenList, &status);
         int command;
         if (status != 0) {
             // Input was parsed successfully and can be accessed in "tokenList"
 
             printSyntaxTree(tree);
+            break;
             // However, this is still a simple list of strings, it might be convenient
             // to build some intermediate structure representing the input line or a
             // command that you then construct in the parsing logic. It's up to you

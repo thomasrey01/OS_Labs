@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 int main()
 {
-    char *s;
-    char t[] = "poop";
-    s = malloc(strlen(t) * sizeof(char));
-    strcpy(s, t);
-    printf("%s\n", s);
+    bool p = false;
+    while (p) {
+        printf("this");
+    }
 }
