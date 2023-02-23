@@ -4,7 +4,6 @@
 #include "scanner.h"
 
 char *commands[1000];
-int last_operation;
 
 /**
  * The function acceptToken checks whether the current token matches a target identifier,
