@@ -8,6 +8,6 @@
 
 #include "scanner.h"
 
-void exec_command(List tokenList);
+void exec_command(char **commands);
 
 #endif

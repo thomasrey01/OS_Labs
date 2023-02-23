@@ -3,6 +3,9 @@
 
 #include "scanner.h"
 
+char *last_operation;
+char *commands[999999];
+
 /**
  * The function acceptToken checks whether the current token matches a target identifier,
  * and goes to the next token if this is the case.
@@ -12,9 +15,11 @@
  */
 bool acceptToken(List *lp, char *ident) {
     if (*lp != NULL && strcmp(((*lp)->t), ident) == 0) {
+        last_operation = (*lp)->t;
         *lp = (*lp)->next;
         return true;
     }
+    last_operation = NULL;
     return false;
 }
 
@@ -35,7 +40,8 @@ bool parseExecutable(List *lp) {
     // Instead, we recommend to just do a syntactical check here, which makes
     // more sense, and defer the binary existence check to the runtime part
     // you'll write later.
-
+    commands[0] = (*lp)->t;
+    (*lp)=(*lp)->next;
     return true;
 }
 
@@ -57,7 +63,7 @@ bool isOperator(char *s) {
             "|",
             NULL
     };
-
+    
     for (int i = 0; operators[i] != NULL; i++) {
         if (strcmp(s, operators[i]) == 0) return true;
     }
@@ -71,9 +77,13 @@ bool isOperator(char *s) {
  */
 bool parseOptions(List *lp) {
     //TODO: store each (*lp)->t as an option, if any exist
+    int i = 1;
     while (*lp != NULL && !isOperator((*lp)->t)) {
+        commands[i] = (*lp)->t;
         (*lp) = (*lp)->next;
+        i++;
     }
+    commands[i] = NULL;
     return true;
 }
 
@@ -118,6 +128,7 @@ bool parsePipeline(List *lp) {
 bool parseFileName(List *lp) {
     //TODO: Process the file name appropriately
     char *fileName = (*lp)->t;
+    *lp = (*lp) ->next;
     return true;
 }
 
@@ -169,7 +180,10 @@ bool parseBuiltIn(List *lp) {
     };
 
     for (int i = 0; builtIns[i] != NULL; i++) {
-        if (acceptToken(lp, builtIns[i])) return true;
+        if (acceptToken(lp, builtIns[i])) {
+            commands[0] = builtIns[i];
+            return true;
+        }
     }
 
     return false;

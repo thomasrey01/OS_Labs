@@ -5,18 +5,18 @@
 
 #include "commands.h"
 
-void exec_command(List tokens) {
-    char *s = tokens->t;
-    if (strcmp(s, "exit") == 0) {
+void exec_command(char **commands) {
+    if (strcmp(commands[0], "exit") == 0) {
         exit(0);
     }
-    if (strcmp(s, "status") == 0) {
+    if (strcmp(commands[0], "status") == 0) {
         //TO DO: implement the status
     }
+    
     pid_t child_pid = fork();
 
     if (child_pid == 0) {
-        execvp(&s[0], &s);
+        execvp(commands[0], commands);
         exit(1);
     } else if (child_pid > 0) {
         int status;
