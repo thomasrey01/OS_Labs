@@ -110,11 +110,12 @@ bool parseOptions(List *lp)
     if (lp == NULL) {
         return false;
     }
-    char *s = (*lp)->t;
-    if (s == NULL || s[0] != '-') {
-        return false;
-    }
     return true;
+    //char *s = (*lp)->t;
+    //if (s == NULL || s[0] != '-') {
+      //  return false;
+    //}
+    //return true;
 }
 
 struct ast *parseChain(List *lp, int *status)
@@ -133,6 +134,7 @@ struct ast *parseChain(List *lp, int *status)
             default:
                 break;
         }
+        *lp = (*lp)->next;
         return tree;
     } 
     if (parseExecutable(lp)) {
@@ -144,6 +146,7 @@ struct ast *parseChain(List *lp, int *status)
             addCommand((*lp)->t, tree->c);
             *lp = (*lp)->next;
         }
+        *lp = (*lp)->next;
         addNull(tree->c);
         return tree;
     }
@@ -157,6 +160,7 @@ struct ast *parseInputLine(List *lp, int *status)
     int stat;
     if (isEmpty(*lp)) {
         *status = 1;
+        freeSyntaxTree(tree);
         return NULL;
     }
     tree->i->left = parseChain(lp, &stat);

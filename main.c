@@ -15,12 +15,12 @@ int main(int argc, char *argv[]) {
     while (true) {
         inputLine = readInputLine();
         tokenList = getTokenList(inputLine);
-        // printList(tokenList);
-        List tokenListCopy = tokenList;
+        printList(tokenList);
+        // List tokenListCopy = tokenList;
         int status;
         struct ast *tree = parseInputLine(&tokenList, status);
         int command;
-        if (tokenListCopy == NULL && status != 0) {
+        if (status != 0) {
             // Input was parsed successfully and can be accessed in "tokenList"
 
             printSyntaxTree(tree);
@@ -28,10 +28,10 @@ int main(int argc, char *argv[]) {
             // to build some intermediate structure representing the input line or a
             // command that you then construct in the parsing logic. It's up to you
             // to determine how to approach this!
-            command = executeCommand(tree);
-            if (command == 0) {
-                break;
-            }
+            //  command = executeCommand(tree);
+            // if (command == 0) {
+            //    break;
+            // }
         } else {
             printf("Error: invalid syntax!\n");
         }

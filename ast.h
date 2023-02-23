@@ -48,5 +48,6 @@ struct ast *createNode(enum type t);
 void addCommand(char *s, struct chain *tree);
 void addNull(struct chain *tree);
 void freeSyntaxTree(struct ast *tree);
+void printSyntaxTree(struct ast *tree);
 
 #endif

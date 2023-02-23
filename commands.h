@@ -7,8 +7,7 @@
 #include <stdio.h>
 
 #include "ast.h"
-#include "scanner.h"
 
-int executeCommand(List tokenList);
+int executeCommand(struct ast *tree);
 
 #endif

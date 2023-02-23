@@ -9,7 +9,7 @@ extern char **command;
 
 int executeCommand(struct ast *tree)
 {
-    char *s = tokenList->t;
+    char *s = ->t;
     if (strcmp(s, "exit") == 0) {
         return 0;
     }

@@ -5,6 +5,14 @@
 
 #include "ast.h"
 
+void printChain(struct chain *c)
+{
+    for (int i = 0; c->command[i] != NULL; i++) {
+        printf("%s ", c->command[i]);
+    }
+    printf("\n");
+}
+
 void printSyntaxTree(struct ast *tree)
 {
     if (tree == NULL) {
@@ -13,12 +21,15 @@ void printSyntaxTree(struct ast *tree)
     switch (tree->t) {
         case INPUTLINE:
             printf("inputline: ");
+            printSyntaxTree(tree->i->left);
+            printSyntaxTree(tree->i->right);
             break;
         case PIPELINE:
             printf("pipeline: ");
             break;
         case CHAIN:
             printf("chain: ");
+            printChain(tree->c);
             break;
         default:
             break;
@@ -55,13 +66,23 @@ void addNull(struct chain *tree)
 
 void addCommand(char *s, struct chain *tree)
 {
+    if (s == NULL) {
+        return;
+    }
     if (tree->command == NULL) {
         tree->command = (char **)malloc(tree->size * sizeof(char *));
+        for (int i = 0; i < tree->size; i++) {
+            tree->command[i] = NULL;
+        }
     }
     if (tree->ptr + 1 == tree->size) {
-        tree->size *= 2;
-        tree->command = realloc(tree->command, tree->size * sizeof(char *));
+        int newSize = tree->size * 2;
+        tree->command = realloc(tree->command, newSize * sizeof(char *));
+        for (int i = tree->ptr+1; i < newSize; i++) {
+            tree->command[i] = NULL;
+        }
     }
+    tree->command[tree->ptr] = malloc(strlen(s) * sizeof(char));
     strcpy(tree->command[tree->ptr], s);
     tree->ptr++;
 }
@@ -78,9 +99,9 @@ struct ast *createNode(enum type t)
             break;
         case CHAIN:
             a->c = (struct chain*)malloc(sizeof(struct chain));
-            a->c->size = 10;
             a->c->ptr = 0;
-            a->c->command = (char **)malloc(a->c->size * sizeof(char**));
+            a->c->size = 10;
+            a->c->command = NULL;
             break;
         default:
             break;
