@@ -7,10 +7,36 @@
 
 void printChain(struct chain *c)
 {
+    if (c->t == EXIT) {
+        printf("exit\n");
+        return;
+    } else if (c->t == STATUS) {
+        printf("status\n");
+    }
     for (int i = 0; c->command[i] != NULL; i++) {
         printf("%s ", c->command[i]);
     }
     printf("\n");
+}
+
+void printOperator(enum commOp op)
+{
+    switch (op) {
+        case TREE_AND:
+            printf(" && ");
+            break;
+        case TREE_OR:
+            printf(" || ");
+            break;
+        case TREE_BACK:
+            printf(" & ");
+            break;
+        case SEMI:
+            printf(" ; ");
+            break;
+        default:
+            break;
+    }
 }
 
 void printSyntaxTree(struct ast *tree)
@@ -22,6 +48,7 @@ void printSyntaxTree(struct ast *tree)
         case INPUTLINE:
             printf("inputline: ");
             printSyntaxTree(tree->i->left);
+            printOperator(tree->i->op);
             printSyntaxTree(tree->i->right);
             break;
         case PIPELINE:
@@ -46,7 +73,16 @@ void freeSyntaxTree(struct ast *tree)
         freeSyntaxTree(tree->i->right);
         free(tree->i);
     } else {
+        if (tree->c->command != NULL) {
+            for (int i = 0; i < tree->c->size; i++) {
+                if (tree->c->command[i] != NULL) {
+                    free(tree->c->command[i]);
+                }
+            }
+            free(tree->c->command);
+        }
         free(tree->c);
+
     }
     free(tree);
 }

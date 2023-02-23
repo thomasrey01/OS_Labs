@@ -143,6 +143,7 @@ struct ast *parseChain(List *lp, int *status)
     if (parseExecutable(lp)) {
         *status = 1;
         struct ast *tree = createNode(CHAIN);
+        tree->c->t = COMMAND;
         addCommand((*lp)->t, tree->c);
         *lp = (*lp)->next;
         while (parseOptions(lp)) {

@@ -8,6 +8,7 @@
 
 #include "ast.h"
 
-int executeCommand(struct ast *tree);
+void executeCommand(char **command);
+int executeTree(struct ast *tree);
 
 #endif
