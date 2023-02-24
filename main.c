@@ -9,7 +9,8 @@
 int main(int argc, char *argv[]) {
     char *inputLine;
     List tokenList;
-    extern char *commands[1000];
+    extern char *commands[COMMANDS_SIZE][COMMANDS_SIZE];
+    extern int a;
 
     //TODO: Signal back that the loop must stop when "exit" has been encountered (or EOF)
     while (true) {
@@ -18,13 +19,10 @@ int main(int argc, char *argv[]) {
 
         bool parsedSuccessfully = parseInputLine(&tokenList);
         if (tokenList == NULL && parsedSuccessfully) {
-            // Input was parsed successfully and can be accessed in "tokenList"
-
-            // However, this is still a simple list of strings, it might be convenient
-            // to build some intermediate structure representing the input line or a
-            // command that you then construct in the parsing logic. It's up to you
-            // to determine how to approach this!
-            exec_command(commands);
+            for(int j = 0; j < a; j++) {
+                exec_command(commands[j]);
+            }
+            a = 0;
         } else {
             printf("Error: invalid syntax!\n");
         }

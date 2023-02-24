@@ -2,8 +2,10 @@
 #include <string.h>
 
 #include "scanner.h"
+#include "shell.h"
 
-char *commands[1000];
+char *commands[COMMANDS_SIZE][COMMANDS_SIZE];
+int a = 0;
 
 /**
  * The function acceptToken checks whether the current token matches a target identifier,
@@ -37,7 +39,7 @@ bool parseExecutable(List *lp) {
     // Instead, we recommend to just do a syntactical check here, which makes
     // more sense, and defer the binary existence check to the runtime part
     // you'll write later.
-    commands[0] = (*lp)->t;
+    commands[a][0] = (*lp)->t;
     (*lp) = (*lp)->next;
     return true;
 }
@@ -76,11 +78,12 @@ bool parseOptions(List *lp) {
     //TODO: store each (*lp)->t as an option, if any exist
     int counter = 1;
     while (*lp != NULL && !isOperator((*lp)->t)) {
-        commands[counter] = (*lp)->t;
+        commands[a][counter] = (*lp)->t;
         (*lp) = (*lp)->next;
         counter++;
     }
-    commands[counter] = NULL;
+    commands[a][counter] = NULL;
+    a++;
     return true;
 }
 
@@ -178,7 +181,7 @@ bool parseBuiltIn(List *lp) {
 
     for (int i = 0; builtIns[i] != NULL; i++) {
         if (acceptToken(lp, builtIns[i])) {
-            commands[0] = builtIns[i];
+            commands[a][0] = builtIns[i];
             return true;
         }
     }
