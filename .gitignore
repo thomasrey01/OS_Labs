@@ -1,1 +1,6 @@
 *.swp
+tests/*
+run_tests.sh
+ctests/*
+*.in
+shell

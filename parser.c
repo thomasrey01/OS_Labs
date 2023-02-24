@@ -19,7 +19,17 @@ enum commOp parseOp(List *lp)
     } else if (strcmp(s, "||") == 0) {
         *lp = (*lp)->next;
         return TREE_OR;
-    } else if (strcmp(s, ";") == 0) {
+    }
+    return NONE;
+}
+
+enum commOp parseSemi(List *lp)
+{
+    if (*lp == NULL) {
+        return NONE;
+    }
+    char *s = (*lp)->t;
+    if (strcmp(s, ";") == 0) {
         *lp = (*lp)->next;
         return SEMI;
     } 
@@ -60,18 +70,10 @@ bool parseExecutable(List *lp) {
 
 int parseBuiltIn(List *lp) // this is wrong fix this
 {
-
-    //
-    // TODO: Implement the logic for these builtins, and extend with
-    // more builtins down the line
-    //
-
-    // NULL-terminated array makes it easy to expand this array later
-    // without changing the code at other places.
     char *builtIns[] = {
-            "exit",
-            "status",
-            NULL
+        "exit",
+        "status",
+        NULL
     };
 
     for (int i = 0; builtIns[i] != NULL; i++) {
@@ -82,24 +84,19 @@ int parseBuiltIn(List *lp) // this is wrong fix this
     return -1;
 }
 
-/*  Here we only parse the chain either as a (built in or executable) and options
- *  <command> := <executable> <options>
- *             | <builtin> <option>
- *  executables can be defined by a path and options
- */
-
-bool isOperator(char *s) {
+bool isOperator(char *s)
+{
     // NULL-terminated array makes it easy to expand this array later
     // without changing the code at other places.
     char *operators[] = {
-            "&",
-            "&&",
-            "||",
-            ";",
-            "<",
-            ">",
-            "|",
-            NULL
+        "&",
+        "&&",
+        "||",
+        ";",
+        "<",
+        ">",
+        "|",
+        NULL
     };
 
     for (int i = 0; operators[i] != NULL; i++) {
@@ -116,7 +113,7 @@ bool parseOptions(List *lp)
     return true;
     //char *s = (*lp)->t;
     //if (s == NULL || s[0] != '-') {
-      //  return false;
+    //  return false;
     //}
     //return true;
 }
@@ -171,11 +168,35 @@ struct ast *parseInputLine(List *lp, int *status)
         return NULL;
     }
     enum commOp oper = parseOp(lp);
-    if (oper != NONE) {
-        tree->i->op = oper;
+    tree->i->op = oper;
+    if (oper != NONE && oper != SEMI) {
         tree->i->right = parseInputLine(lp, &stat);  
     } else {
-        tree->i->op = oper;
+        tree->i->right = NULL;
+    }
+    *status = 1;
+    return tree;
+}
+
+struct ast *parseSemiLine(List *lp, int *status)
+{
+    int stat;
+    if (isEmpty(*lp)) {
+        *status = 1;
+        return NULL;
+    }
+    struct ast *tree = createNode(INPUTLINE);
+    tree->i->left = parseInputLine(lp, &stat);
+    if (stat == 0) {
+        *status = 0;
+        freeSyntaxTree(tree);
+        return NULL;
+    }
+    enum commOp oper = parseSemi(lp);
+    tree->i->op = oper;
+    if (oper == SEMI) {
+        tree->i->right = parseSemiLine(lp, &stat);
+    } else {
         tree->i->right = NULL;
     }
     *status = 1;

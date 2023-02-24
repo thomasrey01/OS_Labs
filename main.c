@@ -15,19 +15,14 @@ int main(int argc, char *argv[]) {
     while (true) {
         inputLine = readInputLine();
         tokenList = getTokenList(inputLine);
-        printList(tokenList);
-        // List tokenListCopy = tokenList;
+        List tokenListCopy = tokenList;
         int status;
-        struct ast *tree = parseInputLine(&tokenList, &status);
+        struct ast *tree = parseSemiLine(&tokenListCopy, &status);
         int command;
         if (status != 0) {
             // Input was parsed successfully and can be accessed in "tokenList"
 
-            printSyntaxTree(tree);
             command = executeTree(tree);
-            if (command == 0) {
-                break;
-            }
             // However, this is still a simple list of strings, it might be convenient
             // to build some intermediate structure representing the input line or a
             // command that you then construct in the parsing logic. It's up to you
@@ -42,7 +37,10 @@ int main(int argc, char *argv[]) {
 
         free(inputLine);
         freeTokenList(tokenList);
+        freeSyntaxTree(tree);
+        if (command == 0) {
+            break;
+        }
     }
-
     return 0;
 }

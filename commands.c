@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "commands.h"
 
@@ -17,6 +18,7 @@ void executeCommand(char **s)
     }
     else if (pid == 0) {
         execvp(s[0], s);
+        exit(errno);
     } else {
         wait(&status);
     }
@@ -26,8 +28,9 @@ void executeCommand(char **s)
 int executeTree(struct ast *tree)
 {
     if (tree == NULL) {
-        return 1;
+        return 0;
     }
+    int lastStatus = WEXITSTATUS(status);
     int commType;
     if (tree->t == INPUTLINE) {
         commType = executeTree(tree->i->left);
@@ -36,12 +39,12 @@ int executeTree(struct ast *tree)
             case NONE:
                 break;
             case TREE_AND:
-                if (status == 0) {
+                if (lastStatus == 0) {
                     commType = executeTree(tree->i->right);
                 }
                 break;
             case TREE_OR:
-                if (status == 0) {
+                if (lastStatus == 0) {
                     break;
                 }
                 commType = executeTree(tree->i->right);
@@ -56,7 +59,8 @@ int executeTree(struct ast *tree)
         struct chain *c = tree->c;
         switch (c->t) {
             case STATUS:
-                printf("Previous status was: %d\n", status);
+                printf("The most recent error code is: %d\n", WEXITSTATUS(status));
+                commType = 1;
                 break;
             case EXIT:
                 commType = 0;
