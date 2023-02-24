@@ -60,14 +60,16 @@ char *matchIdentifier(char *s, int *start) {
     assert(ident != NULL);
 
     bool quoteStarted = false;
-    size_t lenS = strlen(s);
-    while ((*start + offset <= lenS && !isspace(s[*start + offset]) && !isOperatorCharacter(s[*start + offset])) || quoteStarted) { // Ensure that whitespace in strings is accepted
+    while ((!isspace(s[*start + offset]) && !isOperatorCharacter(s[*start + offset])) || quoteStarted) { // Ensure that whitespace in strings is accepted
         if (s[*start + offset] == '\"') { // Strip the quotes from the input before storing in the identifier
             quoteStarted = !quoteStarted;
             offset++;
             continue;
         }
         ident[pos++] = s[*start + offset++];
+        if (s[*start + offset] == '\0') { // Identifiers of size 1
+            break;
+        }
         if (pos >= strLen) { // Resize the string if necessary
             strLen = 2 * strLen;
             ident = realloc(ident, (strLen + 1) * sizeof(*ident));

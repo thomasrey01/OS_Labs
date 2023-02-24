@@ -15,7 +15,7 @@ void exec_command(char **commands) {
         exit(0);
     }
      if (strcmp(commands[0], "status") == 0) {
-        printf("%d\n", exit_code);
+        printf("The most recent exit code is: %d\n", exit_code);
         return;
     } else {
         pid_t child_pid = fork();

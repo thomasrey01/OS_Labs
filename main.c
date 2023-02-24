@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[]) {
     char *inputLine;
-    List tokenList;
+    List tokenList, tokenListCopy;
     extern char *commands[COMMANDS_SIZE][COMMANDS_SIZE];
     extern int a;
 
@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     while (true) {
         inputLine = readInputLine();
         tokenList = getTokenList(inputLine);
+        tokenListCopy = tokenList;
 
         bool parsedSuccessfully = parseInputLine(&tokenList);
         if (tokenList == NULL && parsedSuccessfully) {
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
         }
 
         free(inputLine);
-        freeTokenList(tokenList);
+        freeTokenList(tokenListCopy);
     }
     
     return 0;
