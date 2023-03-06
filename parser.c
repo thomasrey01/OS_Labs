@@ -4,6 +4,12 @@
 #include "scanner.h"
 #include "ast.h"
 
+/** 
+ * Function to get boolean operator from token
+ * @param lp representing a pointer to a List
+ * @return an enum representing the boolean operator.
+ */
+
 enum commOp parseOp(List *lp)
 {
     if (*lp == NULL) {
@@ -23,6 +29,11 @@ enum commOp parseOp(List *lp)
     return NONE;
 }
 
+/**
+ * Function to check whether semicolon is at the current token
+ * @param lp representing a pointer to a List
+ * @return an enum representing the semicolon operator or one representing nothing
+ */
 enum commOp parseSemi(List *lp)
 {
     if (*lp == NULL) {
@@ -36,25 +47,24 @@ enum commOp parseSemi(List *lp)
     return NONE;
 }
 
+/**
+ * Checks whether char is a special character
+ * @param char s
+ * @return boolean value representing whether s is a special character
+ */
 bool isSpecialChar(char s) 
 {
     return (s == '?' || s == '+' || s == '!' || s == '$' || s == '[');    
 }
 
+/** The function parseExecutable parses an executable.
+ * @param lp List pointer to the start of the tokenlist.
+ * @return a bool denoting whether the executable was parsed successfully.
+ */
 bool parseExecutable(List *lp) {
 
     char *s = (*lp)->t;
     bool canEnd = false;
-    // TODO: Determine whether to accept parsing an executable here.
-    // 
-    // It is not recommended to check for existence of the executable already
-    // here, since then it'll be hard to continue parsing the rest of the input
-    // line (command execution should continue after a "not found" command),
-    // it'll also be harder to print the correct error message.
-    // 
-    // Instead, we recommend to just do a syntactical check here, which makes
-    // more sense, and defer the binary existence check to the runtime part
-    // you'll write later.
     char c;
     for (int i = 0; (c = s[i]) != '\0'; i++) {
         if (isSpecialChar(c)) return false;
@@ -68,7 +78,11 @@ bool parseExecutable(List *lp) {
     return canEnd;
 }
 
-int parseBuiltIn(List *lp) // this is wrong fix this
+/** The function parseBuiltin parses a builtin.
+ * @param lp List pointer to the start of the tokenlist.
+ * @return a bool denoting whether the builtin was parsed successfully.
+ */
+int parseBuiltIn(List *lp)
 {
     char *builtIns[] = {
         "exit",
@@ -84,6 +98,11 @@ int parseBuiltIn(List *lp) // this is wrong fix this
     return -1;
 }
 
+/**
+ * Checks whether the input string \param s is an operator.
+ * @param s input string.
+ * @return a bool denoting whether the current string is an operator.
+ */
 bool isOperator(char *s)
 {
     // NULL-terminated array makes it easy to expand this array later
@@ -105,19 +124,24 @@ bool isOperator(char *s)
     return false;
 }
 
+/**
+ * The function parseOptions parses options.
+ * @param lp List pointer to the start of the tokenlist.
+ * @return a bool denoting whether the options were parsed successfully.
+ */
 bool parseOptions(List *lp)
 {
     if (*lp == NULL || isOperator((*lp)->t)) {
         return false;
     }
     return true;
-    //char *s = (*lp)->t;
-    //if (s == NULL || s[0] != '-') {
-    //  return false;
-    //}
-    //return true;
 }
 
+/**
+ * The function parseChain parses a chain and builds its node to the syntax tree.
+ * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
+ * @return abstract syntax tree node.
+ */
 struct ast *parseChain(List *lp, int *status)
 {
     int i;
@@ -153,6 +177,16 @@ struct ast *parseChain(List *lp, int *status)
     return NULL;
 }
 
+/**
+ * The function parseInputLine parses an inputLine and builds its node to the syntax tree according to the grammar:
+ * <inputline>      ::= <chain> & <inputline>
+ *                   | <chain> && <inputline>
+ *                   | <chain> || <inputline>
+ *                   | <chain>
+ *                   | <empty>
+ * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
+ * @return abstract syntax tree node.
+ */
 struct ast *parseInputLine(List *lp, int *status)
 {
     int stat;
@@ -178,6 +212,13 @@ struct ast *parseInputLine(List *lp, int *status)
     return tree;
 }
 
+/**
+ * The function parseInputLine parses an a semiLine and builds its node to the syntax tree according to the grammar:
+ * <semiLine>      ::= <inputLine> ; <semiLine>
+ *                   | <inputLine>
+ * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
+ * @return abstract syntax tree node.
+ */
 struct ast *parseSemiLine(List *lp, int *status)
 {
     int stat;

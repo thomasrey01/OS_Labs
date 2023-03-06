@@ -7,11 +7,13 @@
 #include "commands.h"
 #include "parser.h"
 
+/** Main function. Calls readInputLine and calls functions to build tokenList and to build abstract syntax tree
+ */
+
 int main(int argc, char *argv[]) {
     char *inputLine;
     List tokenList;
 
-    //TODO: Signal back that the loop must stop when "exit" has been encountered (or EOF)
     while (true) {
         inputLine = readInputLine();
         tokenList = getTokenList(inputLine);
@@ -20,21 +22,10 @@ int main(int argc, char *argv[]) {
         struct ast *tree = parseSemiLine(&tokenListCopy, &status);
         int command;
         if (status != 0) {
-            // Input was parsed successfully and can be accessed in "tokenList"
-
             command = executeTree(tree);
-            // However, this is still a simple list of strings, it might be convenient
-            // to build some intermediate structure representing the input line or a
-            // command that you then construct in the parsing logic. It's up to you
-            // to determine how to approach this!
-            //  command = executeCommand(tree);
-            // if (command == 0) {
-            //    break;
-            // }
-        } else {
+       } else {
             printf("Error: invalid syntax!\n");
         }
-
         free(inputLine);
         freeTokenList(tokenList);
         freeSyntaxTree(tree);

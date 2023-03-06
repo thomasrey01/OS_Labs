@@ -5,6 +5,10 @@
 
 #include "ast.h"
 
+/**
+ * The function printChain prints a chain.
+ * @param chain struct
+ */
 void printChain(struct chain *c)
 {
     if (c->t == EXIT) {
@@ -19,6 +23,10 @@ void printChain(struct chain *c)
     printf("\n");
 }
 
+/**
+ * The function printOperator prints an operator.
+ * @param Operator token enum.
+ */
 void printOperator(enum commOp op)
 {
     switch (op) {
@@ -39,6 +47,10 @@ void printOperator(enum commOp op)
     }
 }
 
+/**
+ * The function printSyntaxTree prints a syntax tree
+ * @param syntax tree struct
+ */
 void printSyntaxTree(struct ast *tree)
 {
     if (tree == NULL) {
@@ -63,6 +75,10 @@ void printSyntaxTree(struct ast *tree)
     }
 }
 
+/**
+ * The function freeSyntaxTree frees a syntax tree.
+ * @param syntax tree struct
+ */
 void freeSyntaxTree(struct ast *tree)
 {
     if (tree == NULL) {
@@ -87,6 +103,10 @@ void freeSyntaxTree(struct ast *tree)
     free(tree);
 }
 
+/**
+ * The function addNull adds a NULL pointer to the end of a chain command array.
+ * @param chain struct pointer.
+ */
 void addNull(struct chain *tree)
 {
     if (tree->command == NULL) {
@@ -100,6 +120,11 @@ void addNull(struct chain *tree)
     tree->ptr++;
 }
 
+/**
+ * The function addCommand adds a command to a chain command array.
+ * @param char s representing the command to add, struct chain *tree pointer 
+ * to a chain struct
+ */
 void addCommand(char *s, struct chain *tree)
 {
     if (tree->command == NULL) {
@@ -125,6 +150,11 @@ void addCommand(char *s, struct chain *tree)
     tree->ptr++;
 }
 
+/**
+ * The function createNode creates an abstract syntax tree node.
+ * @param type enum token
+ * @return abstract syntax tree node.
+ */
 struct ast *createNode(enum type t)
 {
     struct ast *a = (struct ast*)malloc(sizeof(struct ast));
@@ -147,6 +177,10 @@ struct ast *createNode(enum type t)
     return a;
 }
 
+/**
+ * The function addOperator adds an operator to a tree node.
+ * @param pointer to tree node, char array of operator
+ */
 void addOperator(struct ast *tree, char *op)
 {   
     assert(tree->t == INPUTLINE);

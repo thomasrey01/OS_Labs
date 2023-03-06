@@ -1,11 +1,18 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "commands.h"
 
-int status;
+int status = 0;
+int lastStatus = 0;
 extern char **command;
+
+/**
+ * This function executes a command and its parameters from a 2d char array
+ * @param 2d char array
+ */
 
 void executeCommand(char **s)
 {
@@ -17,11 +24,19 @@ void executeCommand(char **s)
     }
     else if (pid == 0) {
         execvp(s[0], s);
+        exit(errno);
     } else {
         wait(&status);
     }
     return;
 }
+
+/**
+ * Executes all commands in syntax tree
+ *
+ * @param abstract syntax stree struct
+ * @returns int indicating whether exit has been called
+ */
 
 int executeTree(struct ast *tree)
 {
@@ -56,14 +71,18 @@ int executeTree(struct ast *tree)
         struct chain *c = tree->c;
         switch (c->t) {
             case STATUS:
-                printf("The most recent error code is: %d\n", status);
-                commType = 0;
+                printf("The most recent error code is: %d\n", lastStatus);
+                commType = 1;
                 break;
             case EXIT:
                 commType = 0;
                 break;
             case COMMAND:
-                executeCommand(c->command); 
+                executeCommand(c->command);
+                lastStatus = WEXITSTATUS(status);
+                if (lastStatus == 127) { 
+                    printf("Error: command not found!\n");
+                }
                 commType = 1;
                 break;
             default:
