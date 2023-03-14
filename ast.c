@@ -150,6 +150,18 @@ void addCommand(char *s, struct chain *tree)
     tree->ptr++;
 }
 
+//TODO: implement this funcion such that it is universal for both types of nodes
+void addCommand(char *s, struct ast *tree)
+{
+    int size;
+    int ptr;
+    char **commands;
+    if (tree->t == CHAIN) {
+        size = tree->c->size;
+        
+    }
+}
+
 /**
  * The function createNode creates an abstract syntax tree node.
  * @param type enum token
@@ -171,6 +183,11 @@ struct ast *createNode(enum type t)
             a->c->size = 10;
             a->c->command = NULL;
             break;
+        case REDIRECT:
+            a->r = (struct redirect*)malloc(sizeof(struct redirect));
+            a->r->filenames = NULL;
+            a->r->size = 10;
+            a->r->ptr = 0;
         default:
             break;
     }

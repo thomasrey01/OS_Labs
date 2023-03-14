@@ -24,6 +24,9 @@ char *readInputLine() {
         if (c == '\"') {
             quoteStarted = !quoteStarted;
         }
+        if (c == EOF) {
+            return NULL;
+        }
         s[i++] = c;
 
         if (i >= strLen) { // Resize the string if necessary

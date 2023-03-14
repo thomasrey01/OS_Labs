@@ -7,6 +7,7 @@ enum type {
     INPUTLINE,
     PIPELINE,
     CHAIN,
+    REDIRECT,
 };
 
 enum commOp {
@@ -17,9 +18,15 @@ enum commOp {
     NONE,
 };
 
+enum redirType {
+    LEFT,
+    RIGHT,
+};
+
 enum chainType {
     STATUS,
     EXIT,
+    CD,
     COMMAND,
 };
 
@@ -29,11 +36,20 @@ struct inputline {
     struct ast *right;
 };
 
-struct chain {
-    enum chainType t;
-    char **command; // piping is not yet needed for this lab
+struct redirect {
     int size;
     int ptr;
+    char **command;
+    int num;
+    enum redirType r1;
+    enum redirType r2;
+};
+
+struct chain {
+    int size;
+    int ptr;
+    char **command;
+    enum chainType t;
 };
 
 struct ast {
@@ -41,6 +57,7 @@ struct ast {
     union {
         struct inputline *i;
         struct chain *c;
+        struct redirect *r;
     };
 };
 

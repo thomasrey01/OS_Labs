@@ -16,6 +16,9 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         inputLine = readInputLine();
+        if (inputLine == NULL) {
+            break;
+        }
         tokenList = getTokenList(inputLine);
         List tokenListCopy = tokenList;
         int status;
