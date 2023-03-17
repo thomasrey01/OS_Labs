@@ -13,6 +13,8 @@
 int main(int argc, char *argv[]) {
     char *inputLine;
     List tokenList;
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
 
     while (true) {
         inputLine = readInputLine();

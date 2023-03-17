@@ -96,9 +96,10 @@ void freePipeline(struct pipeline *p)
         return;
     }
     if (p->comm != NULL) {
-        if (p->comm->command != NULL) {
-            free(p->comm->command);
+        for (int i = 0; p->comm->command[i] != NULL; i++) {
+            free(p->comm->command[i]);
         }
+        free(p->comm->command);
         free(p->comm);
     }
     freePipeline(p->next);
@@ -128,6 +129,7 @@ void freeSyntaxTree(struct ast *tree)
                 free(tree->c->red);
             }
             freePipeline(tree->c->pipel);
+            if (tree->c->red != NULL) free(tree->c->red);
         }
         free(tree->c);
     }
@@ -158,6 +160,10 @@ void addNull(struct command *tree)
  */
 void addCommand(char *s, struct command *tree)
 {
+    if (tree == NULL) {
+        printf("ERROR! NULL COMMAND STRUCT!\n");
+        exit(1);
+    }
     if (tree->command == NULL) {
         tree->command = (char **)malloc(tree->size * sizeof(char *));
         for (int i = 0; i < tree->size; i++) {
@@ -182,6 +188,16 @@ void addCommand(char *s, struct command *tree)
     tree->ptr++;
 }
 
+struct redirect *makeRedirect()
+{
+    struct redirect *red = (struct redirect*)malloc(sizeof(struct redirect)); 
+    red->comm = (struct command*)malloc(sizeof(struct command));
+    red->comm->ptr = 0;
+    red->comm->size = 10;
+    red->comm->command = NULL;
+    return red;
+}
+
 /**
  * The function createNode creates an abstract syntax tree node.
  * @param type enum token
@@ -199,6 +215,7 @@ struct ast *createNode(enum type t)
             break;
         case CHAIN:
             a->c = (struct chain*)malloc(sizeof(struct chain));
+            a->c->dir = NULL;
             break;
         default:
             break;
@@ -210,6 +227,7 @@ struct pipeline *createPipeline()
 {
     struct pipeline *p = (struct pipeline*)malloc(sizeof(struct pipeline));
     p->comm = (struct command*)malloc(sizeof(struct command));
+    p->comm->command = NULL;
     p->comm->ptr = 0;
     p->comm->size = 10;
     return p;

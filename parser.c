@@ -4,6 +4,22 @@
 #include "scanner.h"
 #include "ast.h"
 
+enum redirType parseRedOp(List *lp)
+{
+    if (*lp == NULL) {
+        return NONE_RED;
+    }
+    char *s = (*lp)->t;
+    if (strcmp(s, "<") == 0) {
+        *lp = (*lp)->next;
+        return LEFT_RED;
+    } else if (strcmp(s, ">") == 0) {
+        *lp = (*lp)->next;
+        return RIGHT_RED;
+    }
+    return NONE_RED;
+}
+
 /** 
  * Function to get boolean operator from token
  * @param lp representing a pointer to a List
@@ -156,6 +172,7 @@ struct pipeline *parsePipeLine(List *lp, int *status)
     if (parseExecutable(lp)) {
         *status = 1;
         struct pipeline *p = createPipeline();
+        p->next = NULL;
         addCommand((*lp)->t, p->comm);
         *lp = (*lp)->next;
         while (parseOptions(lp)) {
@@ -172,6 +189,32 @@ struct pipeline *parsePipeLine(List *lp, int *status)
     return NULL;
 }
 
+struct redirect *parseRedirect(List *lp, int *status)
+{
+    enum redirType redOp = parseRedOp(lp);
+    if (redOp == NONE_RED) {
+        return NULL;
+    }
+    if (!parseExecutable(lp)) {
+        *status = 0;
+        return NULL;
+    }
+    struct redirect *red = makeRedirect();
+    red->r1 = redOp;
+    addCommand((*lp)->t, red->comm);
+    red->num = 1;
+    if ((redOp = parseRedOp(lp)) != NONE_RED) {
+        red->r2 = redOp;
+        if (parseExecutable(lp)) {
+            addCommand((*lp)->t, red->comm);
+        } else {
+            *status = 0;
+        }
+        red->num = 2;
+    }
+    return red;
+}
+
 // This needs to parse <pipeline> <redirections> | <builtin> <options>
 
 /**
@@ -184,10 +227,11 @@ struct ast *parseChain(List *lp, int *status)
     int i;
     struct ast *tree = createNode(CHAIN);
     if ((i = parseBuiltIn(lp)) != -1) {
-        struct ast *tree = createNode(CHAIN);
         switch (i) {
             case 0:
                 tree->c->t = EXIT;
+                tree->c->dir = NULL;
+                tree->c->red = NULL;
                 break;
             case 1:
                 tree->c->t = STATUS;
@@ -195,7 +239,10 @@ struct ast *parseChain(List *lp, int *status)
             case 2:
                 tree->c->t = CD;
                 *lp = (*lp)->next;
-                if (!isOperator((*lp)->t)) {
+                if (*lp == NULL || isOperator((*lp)->t)) {
+                    addCD(NULL, tree->c);
+                    return tree;
+                } else if (!isOperator((*lp)->t)) {
                     addCD((*lp)->t, tree->c);
                 }
                 break;
@@ -203,11 +250,16 @@ struct ast *parseChain(List *lp, int *status)
                 break;
         }
         *status = 1;
-        *lp = (*lp)->next;
+        if (*lp != NULL) {
+            *lp = (*lp)->next;
+        }
         return tree;
     } 
     tree->c->t = COMMAND;
     tree->c->pipel = parsePipeLine(lp, status);
+    if (*status == 1) {
+        tree->c->red = parseRedirect(lp, status);
+    }
     return tree;
 }
 

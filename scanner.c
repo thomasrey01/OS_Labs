@@ -25,6 +25,7 @@ char *readInputLine() {
             quoteStarted = !quoteStarted;
         }
         if (c == EOF) {
+            free(s);
             return NULL;
         }
         s[i++] = c;

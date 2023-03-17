@@ -14,17 +14,25 @@ extern char **command;
  * @param 2d char array
  */
 
-void executeCD(char **command)
+void executeCD(char *command)
 {
-    if (command[1] == NULL) {
+    if (command == NULL) {
         printf("Error: cd requires folder to navigate to!\n");
-        status = 2;
+        lastStatus = 2;
         return;
     }
-    if (chdir(command[1]) == -1) {
-        status = 2;
-        printf("Error: cd directory not found!");
+    if (chdir(command) == -1) {
+        lastStatus = 2;
+        printf("Error: cd directory not found!\n");
+        return;
     }
+    lastStatus = 0;
+}
+
+void executePipeline(struct pipeline *pipel)
+{
+    // for now this only executes the first one
+    executeCommand(pipel->comm->command);
 }
 
 void executeCommand(char **s)
@@ -64,12 +72,12 @@ int executeTree(struct ast *tree)
             case NONE:
                 break;
             case TREE_AND:
-                if (status == 0) {
+                if (lastStatus == 0) {
                     commType = executeTree(tree->i->right);
                 }
                 break;
             case TREE_OR:
-                if (status == 0) {
+                if (lastStatus == 0) {
                     break;
                 }
                 commType = executeTree(tree->i->right);
@@ -84,18 +92,18 @@ int executeTree(struct ast *tree)
         struct chain *c = tree->c;
         switch (c->t) {
             case STATUS:
-                printf("The most recent error code is: %d\n", lastStatus);
+                printf("The most recent exit code is: %d\n", lastStatus);
                 commType = 1;
                 break;
             case CD:
-                executeCD(c->command);
+                executeCD(c->dir);
                 commType = 1;
                 break;
             case EXIT:
                 commType = 0;
                 break;
             case COMMAND:
-                executeCommand(c->command);
+                executePipeline(c->pipel);
                 lastStatus = WEXITSTATUS(status);
                 if (lastStatus == 127) { 
                     printf("Error: command not found!\n");

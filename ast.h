@@ -20,8 +20,9 @@ enum commOp {
 };
 
 enum redirType {
-    LEFT,
-    RIGHT,
+    LEFT_RED,
+    RIGHT_RED,
+    NONE_RED,
 };
 
 enum chainType {
@@ -74,6 +75,7 @@ struct ast {
 
 struct ast *createNode(enum type t);
 struct pipeline *createPipeline();
+struct redirect *makeRedirect();
 void addCommand(char *s, struct command *tree);
 void addCD(char *s, struct chain *c);
 void addNull(struct command *tree);
