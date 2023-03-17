@@ -7,7 +7,6 @@
 
 int status = 0;
 int lastStatus = 0;
-extern char **command;
 
 /**
  * This function executes a command and its parameters from a 2d char array
@@ -29,9 +28,26 @@ void executeCD(char *command)
     lastStatus = 0;
 }
 
-void executePipeline(struct pipeline *pipel)
+void executePipeline(struct pipeline *pipel, struct redirect *red)
 {
     // for now this only executes the first one
+    int fdNum;
+    int fd[2];
+    for (; pipel != NULL; pipel = pipel->next) {
+        if (pipe(fd) == -1) {
+            fprintf(stderr, "broken pipes!\n");
+            exit(0);
+        }
+        pid_t pid;
+        pid = fork();
+        if (pid < 0) {
+            printf("bad fork\n");
+            exit(0);
+        }
+        if (pid == 0) {
+
+        }
+    }
     executeCommand(pipel->comm->command);
 }
 
@@ -103,7 +119,7 @@ int executeTree(struct ast *tree)
                 commType = 0;
                 break;
             case COMMAND:
-                executePipeline(c->pipel);
+                executePipeline(c->pipel, c->red);
                 lastStatus = WEXITSTATUS(status);
                 if (lastStatus == 127) { 
                     printf("Error: command not found!\n");
