@@ -47,6 +47,19 @@ enum commOp parseSemi(List *lp)
     return NONE;
 }
 
+bool parsePipe(List *lp)
+{
+    if (*lp == NULL) {
+        return false;
+    }
+    char *s = (*lp)->t;
+    if (strcmp(s, "|") == 0) {
+        *lp = (*lp)->next;
+        return true;
+    }
+    return false;
+}
+
 /**
  * Checks whether char is a special character
  * @param char s
@@ -87,6 +100,7 @@ int parseBuiltIn(List *lp)
     char *builtIns[] = {
         "exit",
         "status",
+        "cd",
         NULL
     };
 
@@ -137,6 +151,29 @@ bool parseOptions(List *lp)
     return true;
 }
 
+struct pipeline *parsePipeLine(List *lp, int *status)
+{
+    if (parseExecutable(lp)) {
+        *status = 1;
+        struct pipeline *p = createPipeline();
+        addCommand((*lp)->t, p->comm);
+        *lp = (*lp)->next;
+        while (parseOptions(lp)) {
+            addCommand((*lp)->t, p->comm);
+            *lp = (*lp)->next;
+        }
+        addNull(p->comm);
+        if (parsePipe(lp)) {
+            p->next = parsePipeLine(lp, status);
+        }
+        return p;
+    }
+    *status = 0;
+    return NULL;
+}
+
+// This needs to parse <pipeline> <redirections> | <builtin> <options>
+
 /**
  * The function parseChain parses a chain and builds its node to the syntax tree.
  * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
@@ -145,8 +182,8 @@ bool parseOptions(List *lp)
 struct ast *parseChain(List *lp, int *status)
 {
     int i;
+    struct ast *tree = createNode(CHAIN);
     if ((i = parseBuiltIn(lp)) != -1) {
-        *status = 1;
         struct ast *tree = createNode(CHAIN);
         switch (i) {
             case 0:
@@ -155,26 +192,23 @@ struct ast *parseChain(List *lp, int *status)
             case 1:
                 tree->c->t = STATUS;
                 break;
+            case 2:
+                tree->c->t = CD;
+                *lp = (*lp)->next;
+                if (!isOperator((*lp)->t)) {
+                    addCD((*lp)->t, tree->c);
+                }
+                break;
             default:
                 break;
         }
+        *status = 1;
         *lp = (*lp)->next;
         return tree;
     } 
-    if (parseExecutable(lp)) {
-        *status = 1;
-        struct ast *tree = createNode(CHAIN);
-        tree->c->t = COMMAND;
-        addCommand((*lp)->t, tree->c);
-        *lp = (*lp)->next;
-        while (parseOptions(lp)) {
-            addCommand((*lp)->t, tree->c);
-            *lp = (*lp)->next;
-        }
-        addNull(tree->c);
-        return tree;
-    }
-    return NULL;
+    tree->c->t = COMMAND;
+    tree->c->pipel = parsePipeLine(lp, status);
+    return tree;
 }
 
 /**

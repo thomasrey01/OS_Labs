@@ -14,6 +14,19 @@ extern char **command;
  * @param 2d char array
  */
 
+void executeCD(char **command)
+{
+    if (command[1] == NULL) {
+        printf("Error: cd requires folder to navigate to!\n");
+        status = 2;
+        return;
+    }
+    if (chdir(command[1]) == -1) {
+        status = 2;
+        printf("Error: cd directory not found!");
+    }
+}
+
 void executeCommand(char **s)
 {
     pid_t pid;
@@ -72,6 +85,10 @@ int executeTree(struct ast *tree)
         switch (c->t) {
             case STATUS:
                 printf("The most recent error code is: %d\n", lastStatus);
+                commType = 1;
+                break;
+            case CD:
+                executeCD(c->command);
                 commType = 1;
                 break;
             case EXIT:

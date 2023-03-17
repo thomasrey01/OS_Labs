@@ -2,6 +2,7 @@
 #define AST_H
 
 struct ast;
+struct pipeline;
 
 enum type {
     INPUTLINE,
@@ -30,26 +31,37 @@ enum chainType {
     COMMAND,
 };
 
+struct command {
+    int size;
+    int ptr;
+    char **command;
+};
+
 struct inputline {
     enum commOp op;
     struct ast *left;
     struct ast *right;
 };
 
+struct pipeline {
+    struct command *comm;
+    struct pipeline *next;
+};
+
 struct redirect {
-    int size;
-    int ptr;
-    char **command;
+    struct command *comm;
     int num;
     enum redirType r1;
     enum redirType r2;
 };
 
 struct chain {
-    int size;
-    int ptr;
-    char **command;
     enum chainType t;
+    union {
+        struct pipeline *pipel;
+        char *dir;
+    };
+    struct redirect *red;
 };
 
 struct ast {
@@ -57,13 +69,14 @@ struct ast {
     union {
         struct inputline *i;
         struct chain *c;
-        struct redirect *r;
     };
 };
 
 struct ast *createNode(enum type t);
-void addCommand(char *s, struct chain *tree);
-void addNull(struct chain *tree);
+struct pipeline *createPipeline();
+void addCommand(char *s, struct command *tree);
+void addCD(char *s, struct chain *c);
+void addNull(struct command *tree);
 void freeSyntaxTree(struct ast *tree);
 void printSyntaxTree(struct ast *tree);
 

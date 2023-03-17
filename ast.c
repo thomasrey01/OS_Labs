@@ -17,9 +17,13 @@ void printChain(struct chain *c)
     } else if (c->t == STATUS) {
         printf("status\n");
     }
-    for (int i = 0; c->command[i] != NULL; i++) {
-        printf("%s ", c->command[i]);
+    else if (c->t == CD) {
+        printf("cd\n");
     }
+    // this needs to be updated for pipelines and builtins
+    //for (int i = 0; c->comm->command[i] != NULL; i++) {
+    //    printf("%s ", c->comm->command[i]);
+    //}
     printf("\n");
 }
 
@@ -75,6 +79,32 @@ void printSyntaxTree(struct ast *tree)
     }
 }
 
+void addCD(char *s, struct chain *c)
+{
+    if (s == NULL) {
+        return;
+    }
+    if (c->dir == NULL) {
+        c->dir = (char*)malloc((strlen(s) + 1) * sizeof(char));
+    }
+    strcpy(c->dir, s);
+}
+
+void freePipeline(struct pipeline *p)
+{
+    if (p == NULL) {
+        return;
+    }
+    if (p->comm != NULL) {
+        if (p->comm->command != NULL) {
+            free(p->comm->command);
+        }
+        free(p->comm);
+    }
+    freePipeline(p->next);
+    free(p);
+}
+
 /**
  * The function freeSyntaxTree frees a syntax tree.
  * @param syntax tree struct
@@ -89,16 +119,17 @@ void freeSyntaxTree(struct ast *tree)
         freeSyntaxTree(tree->i->right);
         free(tree->i);
     } else {
-        if (tree->c->command != NULL) {
-            for (int i = 0; i < tree->c->size; i++) {
-                if (tree->c->command[i] != NULL) {
-                    free(tree->c->command[i]);
-                }
+        if (tree->c->t == CD) {
+            if (tree->c->dir != NULL) {
+                free(tree->c->dir);
             }
-            free(tree->c->command);
+        } else if (tree->c->t == COMMAND) {
+            if (tree->c->red != NULL) {
+                free(tree->c->red);
+            }
+            freePipeline(tree->c->pipel);
         }
         free(tree->c);
-
     }
     free(tree);
 }
@@ -107,7 +138,7 @@ void freeSyntaxTree(struct ast *tree)
  * The function addNull adds a NULL pointer to the end of a chain command array.
  * @param chain struct pointer.
  */
-void addNull(struct chain *tree)
+void addNull(struct command *tree)
 {
     if (tree->command == NULL) {
         tree->command = (char **)malloc(tree->size * sizeof(char *));
@@ -125,7 +156,7 @@ void addNull(struct chain *tree)
  * @param char s representing the command to add, struct chain *tree pointer 
  * to a chain struct
  */
-void addCommand(char *s, struct chain *tree)
+void addCommand(char *s, struct command *tree)
 {
     if (tree->command == NULL) {
         tree->command = (char **)malloc(tree->size * sizeof(char *));
@@ -135,6 +166,7 @@ void addCommand(char *s, struct chain *tree)
     }
     if (tree->ptr + 1 == tree->size) {
         int newSize = tree->size * 2;
+        tree->size = newSize;
         tree->command = realloc(tree->command, newSize * sizeof(char *));
         for (int i = tree->ptr+1; i < newSize; i++) {
             tree->command[i] = NULL;
@@ -148,18 +180,6 @@ void addCommand(char *s, struct chain *tree)
     tree->command[tree->ptr] = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(tree->command[tree->ptr], s);
     tree->ptr++;
-}
-
-//TODO: implement this funcion such that it is universal for both types of nodes
-void addCommand(char *s, struct ast *tree)
-{
-    int size;
-    int ptr;
-    char **commands;
-    if (tree->t == CHAIN) {
-        size = tree->c->size;
-        
-    }
 }
 
 /**
@@ -179,19 +199,20 @@ struct ast *createNode(enum type t)
             break;
         case CHAIN:
             a->c = (struct chain*)malloc(sizeof(struct chain));
-            a->c->ptr = 0;
-            a->c->size = 10;
-            a->c->command = NULL;
             break;
-        case REDIRECT:
-            a->r = (struct redirect*)malloc(sizeof(struct redirect));
-            a->r->filenames = NULL;
-            a->r->size = 10;
-            a->r->ptr = 0;
         default:
             break;
     }
     return a;
+}
+
+struct pipeline *createPipeline()
+{
+    struct pipeline *p = (struct pipeline*)malloc(sizeof(struct pipeline));
+    p->comm = (struct command*)malloc(sizeof(struct command));
+    p->comm->ptr = 0;
+    p->comm->size = 10;
+    return p;
 }
 
 /**
