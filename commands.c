@@ -9,10 +9,9 @@ int status = 0;
 int lastStatus = 0;
 
 /**
- * This function executes a command and its parameters from a 2d char array
- * @param 2d char array
+ * This function executes the cd builtin command from a char array
+ * @param char pointer
  */
-
 void executeCD(char *command)
 {
     if (command == NULL) {
@@ -28,45 +27,76 @@ void executeCD(char *command)
     lastStatus = 0;
 }
 
+/**
+ * This function executes a pipeline of multiple commands.
+ * @param pipeline node and redirect node
+ */
 void executePipeline(struct pipeline *pipel, struct redirect *red)
 {
-    // for now this only executes the first one
-    int fdNum;
+    int in = 0;
     int fd[2];
-    for (; pipel != NULL; pipel = pipel->next) {
-        if (pipe(fd) == -1) {
-            fprintf(stderr, "broken pipes!\n");
-            exit(0);
-        }
-        pid_t pid;
+    int size = 0;
+    pid_t pid;
+    struct pipeline *tmp = pipel;
+    while (tmp != NULL) {
+        size++;
+        tmp = tmp->next;
+    }
+
+    if (pipe(fd) < 0) {
+        exit(1);
+    }
+
+    for (int i = 0; i < size - 1; i++) {
+
         pid = fork();
-        if (pid < 0) {
-            printf("bad fork\n");
-            exit(0);
+
+        if (pid == -1) {
+            fprintf(stderr, "fork error\n");
+            exit(1);
         }
         if (pid == 0) {
 
+
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[0]);
+            close(fd[1]);
+
+            if (execvp(pipel->comm->command[0], pipel->comm->command) == -1){
+                if (errno == 2) {
+                    lastStatus = 127;
+                    printf("Error: command not found!\n");
+                }
+            }
+            exit(errno);
+        } else {
+            wait(&status);
+            close(fd[1]);
         }
     }
-    executeCommand(pipel->comm->command);
-}
-
-void executeCommand(char **s)
-{
-    pid_t pid;
     pid = fork();
-    if (pid < 0) {
-        fprintf(stderr, "fork() could not create a child process!");
-        exit(0);
+    if (pid == -1) {
+        exit(1);
     }
-    else if (pid == 0) {
-        execvp(s[0], s);
+    if (pid == 0) {
+
+        dup2(STDIN_FILENO, fd[1]);
+        close(fd[1]);
+        close(fd[0]);
+    
+        if (execvp(pipel->comm->command[0], pipel->comm->command) == -1) {
+            if (errno == 2) {
+                lastStatus = 127;
+                printf("Error: command not found!\n");
+            }
+        }
         exit(errno);
     } else {
         wait(&status);
+        close(fd[1]);
     }
-    return;
 }
+
 
 /**
  * Executes all commands in syntax tree
@@ -121,9 +151,6 @@ int executeTree(struct ast *tree)
             case COMMAND:
                 executePipeline(c->pipel, c->red);
                 lastStatus = WEXITSTATUS(status);
-                if (lastStatus == 127) { 
-                    printf("Error: command not found!\n");
-                }
                 commType = 1;
                 break;
             default:

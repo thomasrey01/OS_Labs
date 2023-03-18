@@ -63,6 +63,11 @@ enum commOp parseSemi(List *lp)
     return NONE;
 }
 
+/**
+ * Function to check whether pipe operator is at the current token
+ * @param lp representing a pointer to a list
+ * @return true or false depending on whether a pipe operator is found or not
+ */
 bool parsePipe(List *lp)
 {
     if (*lp == NULL) {
@@ -167,6 +172,11 @@ bool parseOptions(List *lp)
     return true;
 }
 
+/**
+ * The function parsePipeLine parses the different pipe commands and builds its node to the syntax tree.
+ * @param lp List pointer to the start of the tokenlist, int *status pointer to an int.
+ * @return pipeline node
+ */
 struct pipeline *parsePipeLine(List *lp, int *status)
 {
     if (parseExecutable(lp)) {
@@ -189,6 +199,11 @@ struct pipeline *parsePipeLine(List *lp, int *status)
     return NULL;
 }
 
+/**
+ * The function parseRedirect parses redirects and builds its node to the syntax tree.
+ * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
+ * @return redirect node
+ */
 struct redirect *parseRedirect(List *lp, int *status)
 {
     enum redirType redOp = parseRedOp(lp);
@@ -215,8 +230,6 @@ struct redirect *parseRedirect(List *lp, int *status)
     return red;
 }
 
-// This needs to parse <pipeline> <redirections> | <builtin> <options>
-
 /**
  * The function parseChain parses a chain and builds its node to the syntax tree.
  * @param lp List pointer to the start of the tokenlist, int *status pointer to an int
@@ -225,6 +238,7 @@ struct redirect *parseRedirect(List *lp, int *status)
 struct ast *parseChain(List *lp, int *status)
 {
     int i;
+    *status = 1;
     struct ast *tree = createNode(CHAIN);
     if ((i = parseBuiltIn(lp)) != -1) {
         switch (i) {
