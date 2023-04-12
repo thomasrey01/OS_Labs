@@ -1,5 +1,5 @@
 all:
-	gcc exec.c 
+	gcc exec.c -o exec 
 
 debug:
 	gcc -g exec.c
