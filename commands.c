@@ -47,7 +47,7 @@ void executePipeline(struct pipeline *pipel, struct redirect *red)
         exit(1);
     }
 
-    for (int i = 0; i < size - 1; i++) {
+    for (int i = 0; i < size; i++) {
 
         pid = fork();
 
@@ -83,7 +83,7 @@ void executePipeline(struct pipeline *pipel, struct redirect *red)
         dup2(STDIN_FILENO, fd[1]);
         close(fd[1]);
         close(fd[0]);
-    
+
         if (execvp(pipel->comm->command[0], pipel->comm->command) == -1) {
             if (errno == 2) {
                 lastStatus = 127;
@@ -97,6 +97,53 @@ void executePipeline(struct pipeline *pipel, struct redirect *red)
     }
 }
 
+void executePipe(struct pipeline *pipel, struct redirect *red)
+{
+    struct pipeline *tmp = pipel;
+    int pipeCnt = 0;
+    while (tmp != NULL) {
+        pipeCnt++;
+        tmp = tmp->next;
+    }
+
+    int fd[2];
+    int inFd = 0;
+    int outFd = 1;
+
+    for (int i = 0; i < pipeCnt; i++) {
+        if (pipe(fd) < 0) {
+            fprintf(stderr, "Error in pipe!");
+            exit(1);
+        }
+         
+        pid_t pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "Error in fork!");
+            exit(1);
+        }
+
+        if (pid == 0) {
+            if (i != 0) {
+                dup2(inFd, 0);
+            }
+            if (i != pipeCnt - 1) {
+                dup2(fd[1], 1);
+            }
+            if (execvp(pipel->comm->command[0], pipel->comm->command) == -1) {
+                if (errno == 2) {
+                    lastStatus = 127;
+                    printf("Error: command not found!\n");
+                }
+            }
+            exit(errno);
+        } else {
+            wait(&status);
+            inFd = fd[0];
+            close(fd[1]);
+        }
+        pipel = pipel->next;
+    }
+}
 
 /**
  * Executes all commands in syntax tree
@@ -149,7 +196,7 @@ int executeTree(struct ast *tree)
                 commType = 0;
                 break;
             case COMMAND:
-                executePipeline(c->pipel, c->red);
+                executePipe(c->pipel, c->red);
                 lastStatus = WEXITSTATUS(status);
                 commType = 1;
                 break;
