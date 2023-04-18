@@ -27,75 +27,16 @@ void executeCD(char *command)
     lastStatus = 0;
 }
 
+struct descriptors getRedirects(struct redirect *red)
+{
+    struct descriptors desc;
+    
+}
+
 /**
  * This function executes a pipeline of multiple commands.
  * @param pipeline node and redirect node
  */
-void executePipeline(struct pipeline *pipel, struct redirect *red)
-{
-    int in = 0;
-    int fd[2];
-    int size = 0;
-    pid_t pid;
-    struct pipeline *tmp = pipel;
-    while (tmp != NULL) {
-        size++;
-        tmp = tmp->next;
-    }
-
-    if (pipe(fd) < 0) {
-        exit(1);
-    }
-
-    for (int i = 0; i < size; i++) {
-
-        pid = fork();
-
-        if (pid == -1) {
-            fprintf(stderr, "fork error\n");
-            exit(1);
-        }
-        if (pid == 0) {
-
-
-            dup2(fd[1], STDOUT_FILENO);
-            close(fd[0]);
-            close(fd[1]);
-
-            if (execvp(pipel->comm->command[0], pipel->comm->command) == -1){
-                if (errno == 2) {
-                    lastStatus = 127;
-                    printf("Error: command not found!\n");
-                }
-            }
-            exit(errno);
-        } else {
-            wait(&status);
-            close(fd[1]);
-        }
-    }
-    pid = fork();
-    if (pid == -1) {
-        exit(1);
-    }
-    if (pid == 0) {
-
-        dup2(STDIN_FILENO, fd[1]);
-        close(fd[1]);
-        close(fd[0]);
-
-        if (execvp(pipel->comm->command[0], pipel->comm->command) == -1) {
-            if (errno == 2) {
-                lastStatus = 127;
-                printf("Error: command not found!\n");
-            }
-        }
-        exit(errno);
-    } else {
-        wait(&status);
-        close(fd[1]);
-    }
-}
 
 void executePipe(struct pipeline *pipel, struct redirect *red)
 {

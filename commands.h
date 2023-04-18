@@ -8,6 +8,11 @@
 
 #include "ast.h"
 
+struct descriptors {
+    int in;
+    int out;
+};
+
 void executeCommand(char **command);
 int executeTree(struct ast *tree);
 
