@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -27,10 +28,26 @@ void executeCD(char *command)
     lastStatus = 0;
 }
 
-struct descriptors getRedirects(struct redirect *red)
+struct descriptors *getRedirects(struct redirect *red)
 {
-    struct descriptors desc;
-    
+    struct descriptors *desc;
+    desc->in = 0;
+    desc->out = 1;
+    if (red->num == 0) return desc;     
+    if (red->r1 == LEFT_RED) {
+        desc->in = fileno(fopen(red->comm->command[0], "r"));
+    }
+    if (red->r1 == RIGHT_RED) {
+        desc->out = fileno(fopen(red->comm->command[0], "w"));
+    }
+    if (red->num == 1) return desc;
+    if (red->r2 == LEFT_RED) {
+        desc->in = fileno(fopen(red->comm->command[1], "r"));
+    }
+    if (red->r2 == RIGHT_RED) {
+        desc->out = fileno(fopen(red->comm->command[1], "w"));
+    }
+    return desc;
 }
 
 /**
@@ -47,6 +64,8 @@ void executePipe(struct pipeline *pipel, struct redirect *red)
         tmp = tmp->next;
     }
 
+    struct descriptors *desc = getRedirects(red);
+    printf("in: %d, out: %d\n", desc->in, desc->out);
     int fd[2];
     int inFd = 0;
     int outFd = 1;
