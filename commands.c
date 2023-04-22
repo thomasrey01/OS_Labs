@@ -33,6 +33,7 @@ struct descriptors *getRedirects(struct redirect *red)
     struct descriptors *desc;
     desc->in = 0;
     desc->out = 1;
+    if (red == NULL) return desc;
     if (red->num == 0) return desc;     
     if (red->r1 == LEFT_RED) {
         desc->in = fileno(fopen(red->comm->command[0], "r"));
@@ -65,10 +66,12 @@ void executePipe(struct pipeline *pipel, struct redirect *red)
     }
 
     struct descriptors *desc = getRedirects(red);
-    printf("in: %d, out: %d\n", desc->in, desc->out);
+    //printf("in: %d, out: %d\n", desc->in, desc->out);
     int fd[2];
-    int inFd = 0;
-    int outFd = 1;
+    int inFd = desc->in;
+    int outFd = desc->out;
+    dup2(outFd, 1);
+    dup2(inFd, 0);
 
     for (int i = 0; i < pipeCnt; i++) {
         if (pipe(fd) < 0) {
