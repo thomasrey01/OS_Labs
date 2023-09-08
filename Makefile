@@ -6,3 +6,4 @@ debug:
 
 clean:
 	rm -f a.out
+	rm -f exec

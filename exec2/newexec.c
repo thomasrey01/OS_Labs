@@ -1,6 +1,5 @@
 #include "helper.h"
 #include "my_elf.h"
-#include "their_exec.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -12,11 +11,6 @@ struct Buffer {
 	size_t len, pos;
 	unsigned char b[];
 };
-
-int ul_exec(const char *path, char *const *argv, char *const *env)
-{
-	return 0;
-}
 
 /* Scaffolding code to guide the jump to the other binary */
 // Finalize is called when the "child" exits
@@ -31,7 +25,6 @@ static void finalize()
 // pointer.
 _Noreturn void jump(void *entry_point, void *stack_pointer)
 {
-	printf("Entry: %p\nStack: %p\n", entry_point, stack_pointer);
 	// We have to do this in pure assembly; this should never return!
 	// x86-64 ABI $3.4.1 states the following about registers for new
 	// processes:
@@ -53,8 +46,6 @@ _Noreturn void jump(void *entry_point, void *stack_pointer)
 			     // for the code above
 	);
 
-	// We should never get here!
-	printf("Error: jump failed or something strange happened\n");
 	exit(1);
 }
 
@@ -107,8 +98,8 @@ void stack_print(void *stack, size_t size)
 	s3 += sizeof(uint64_t);
 }
 
-void *elf_load(const char *path, uint argc, char **argv, char **envp,
-	       Elf64_auxv_t *auxv)
+void *ul_exec(const char *path, uint argc, char **argv, char **envp,
+	      Elf64_auxv_t *auxv)
 {
 	FILE *fp = fopen(path, "rb");
 	if (!fp)
@@ -124,7 +115,6 @@ void *elf_load(const char *path, uint argc, char **argv, char **envp,
 
 	if (addr == MAP_FAILED) // NOLINT
 		exit_with_error();
-	printf("Addr: %p\n", addr);
 
 	if (fclose(fp))
 		exit_with_error();
@@ -154,8 +144,6 @@ void *elf_load(const char *path, uint argc, char **argv, char **envp,
 
 		uint64_t ps  = sysconf(_SC_PAGE_SIZE);
 		uint64_t loc = (uint64_t)(exec + program_headers[i].p_vaddr);
-		printf("page_size: %ld\n location: %ld\n   modulo: %ld\n", ps,
-		       loc, loc % ps);
 		memmove(exec + program_headers[i].p_vaddr,
 			addr + program_headers[i].p_offset,
 			program_headers[i].p_filesz);
@@ -182,8 +170,6 @@ void *elf_load(const char *path, uint argc, char **argv, char **envp,
 
 	uint64_t *stack = alloca(stack_size * sizeof(*stack));
 	memset(stack, 0, stack_size * sizeof(*stack));
-	printf("Stack: %p-%p\n", stack,
-	       stack + stack_size + sizeof(uint64_t) - 1);
 	size_t front = 0;
 	size_t back  = stack_size - 1;
 
@@ -195,29 +181,36 @@ void *elf_load(const char *path, uint argc, char **argv, char **envp,
 		size_t len = strlen(*argv);
 		strings -= len + 1;
 		strcpy(strings, *argv);
-		printf("argv: %p\n", stack + front);
 		stack[front++] = (uint64_t)strings;
 	}
-	printf("NULL: %p\n", stack + front);
 	stack[front++] = (uint64_t)NULL;
 	for (; *envp; envp++) {
 		size_t len = strlen(*envp);
 		strings -= len + 1;
 		strcpy(strings, *envp);
-		printf("envp: %p\n", stack + front);
 		stack[front++] = (uint64_t)strings;
 	}
-	printf("NULL: %p\n", stack + front);
 	stack[front++] = (uint64_t)NULL;
 	for (; auxv->a_type != AT_NULL; auxv++) {
-		printf("auxv: %p\n", stack + front);
+		switch (auxv->a_type) {
+		case AT_PHDR:
+			auxv->a_un.a_val =
+			    (uint64_t)(exec + elf_header->e_phoff);
+			break;
+		case AT_PHNUM:
+			auxv->a_un.a_val = elf_header->e_phnum;
+			break;
+		case AT_ENTRY:
+			auxv->a_un.a_val =
+			    (uint64_t)(exec + elf_header->e_entry);
+			break;
+		}
 		stack[front++] = auxv->a_type;
 		stack[front++] = auxv->a_un.a_val;
 	}
-	printf("NULL: %p\n", stack + front);
 	stack[front++] = (uint64_t)NULL;
 
-	stack_print(stack, stack_size * sizeof(uint64_t));
+	// stack_print(stack, stack_size * sizeof(uint64_t));
 
 	jump(exec + elf_header->e_entry, stack);
 
@@ -226,11 +219,7 @@ void *elf_load(const char *path, uint argc, char **argv, char **envp,
 
 void my_exec(int argc, char **argv, char **env, Elf64_auxv_t *auxv)
 {
-	elf_load(*argv, argc, argv, env, auxv);
-
-	// ul_exec(path, argv, env);
-	// if (execv(path, argv) == -1)
-	// 	exit_with_error();
+	ul_exec(*argv, argc, argv, env, auxv);
 	exit(0);
 }
 
